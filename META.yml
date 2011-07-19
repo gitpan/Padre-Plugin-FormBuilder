@@ -1,0 +1,37 @@
+---
+abstract: 'Generate Perl for dialogs created in wxFormBuilder'
+author:
+  - 'Adam Kennedy <adamk@cpan.org>'
+build_requires:
+  Class::Unload: 0.07
+  ExtUtils::MakeMaker: 6.42
+  Test::LongString: 0.10
+  Test::More: 0.47
+  Test::NoWarnings: 0.084
+configure_requires:
+  ExtUtils::MakeMaker: 6.42
+distribution_type: module
+generated_by: 'Module::Install version 1.01'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+module_name: Padre::Plugin::FormBuilder
+name: Padre-Plugin-FormBuilder
+no_index:
+  directory:
+    - inc
+    - share
+    - t
+requires:
+  Class::Inspector: 1.22
+  FBP::Perl: 0.55
+  Mouse: 0.61
+  Padre::Plugin: 0.66
+  Padre::Util: 0.81
+  Padre::Wx: 0.66
+  Params::Util: 0.33
+  perl: 5.8.5
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.02
