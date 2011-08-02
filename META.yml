@@ -1,7 +1,7 @@
 ---
-abstract: 'Generate Perl for dialogs created in wxFormBuilder'
+abstract: "Generate Perl for dialogs created in wxFormBuilder\r"
 author:
-  - 'Adam Kennedy <adamk@cpan.org>'
+  - "Adam Kennedy <adamk@cpan.org>\r"
 build_requires:
   Class::Unload: 0.07
   ExtUtils::MakeMaker: 6.42
@@ -25,7 +25,7 @@ no_index:
     - t
 requires:
   Class::Inspector: 1.22
-  FBP::Perl: 0.55
+  FBP::Perl: 0.59
   Mouse: 0.61
   Padre::Plugin: 0.66
   Padre::Util: 0.81
@@ -34,4 +34,4 @@ requires:
   perl: 5.8.5
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.02
+version: 0.03
