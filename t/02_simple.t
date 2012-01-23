@@ -10,7 +10,7 @@ use Test::More tests => 14;
 use Test::NoWarnings;
 use Test::LongString;
 use Padre::Plugin::FormBuilder::Perl;
-use Class::Unload;
+use Padre::Unload;
 
 sub code {
 	my $left    = shift;
@@ -72,7 +72,7 @@ SCOPE: {
 	# Create the generator object
 	my $code = Padre::Plugin::FormBuilder::Perl->new(
 		project  => $project,
-		version  => '0.02',
+		version  => '0.04',
 		nocritic => 1,
 	);
 	isa_ok( $code, 'FBP::Perl' );
@@ -82,7 +82,7 @@ SCOPE: {
 	my $want = slurp($naive);
 	code( $have, $want, '->dialog_super ok' );
 	compiles( $have, 'Dialog class compiled' );
-	Class::Unload->unload($dialog->name);
+	Padre::Unload::unload($dialog->name);
 }
 
 # Test in strict mode
@@ -90,7 +90,8 @@ SCOPE: {
 	# Create the generator object
 	my $code = Padre::Plugin::FormBuilder::Perl->new(
 		project     => $project,
-		version     => '0.03',
+		version     => '0.04',
+		prefix      => 2,
 		encapsulate => 1,
 		nocritic    => 1,
 	);

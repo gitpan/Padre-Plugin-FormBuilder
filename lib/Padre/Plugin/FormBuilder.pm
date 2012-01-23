@@ -8,14 +8,13 @@ Padre::Plugin::FormBuilder - Generate Perl for dialogs created in wxFormBuilder
 
 =head1 DESCRIPTION
 
-The FormBuilder user interface design tool helps to produce user interface code
-relatively quickly. However, it does not support the generation of Perl.
+The Form Builder user interface design tool helps to produce user interface
+code relatively quickly. However, it does not natively support the
+generation of Perl code.
 
 B<Padre::Plugin::FormBuilder> provides an interface to the
 L<Wx::Perl::FormBuilder> module to allow the generation of Padre dialog code
 based on wxFormBuilder designs.
-
-=head1 METHODS
 
 =cut
 
@@ -27,11 +26,9 @@ use warnings;
 # but we happen to know Padre uses all of them itself.
 use Class::Inspector 1.22 ();
 use Params::Util     1.00 ();
-use Padre::Plugin    0.66 ();
-use Padre::Util      0.81 ();
-use Padre::Wx        0.66 ();
+use Padre::Plugin         ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 our @ISA     = 'Padre::Plugin';
 
 # Temporary namespace counter
@@ -44,33 +41,37 @@ my $COUNT = 0;
 #####################################################################
 # Padre::Plugin Methods
 
-sub padre_interfaces {
-	'Padre::Plugin'         => 0.66,
-	'Padre::Util'           => 0.81,
-	'Padre::Task'           => 0.81,
-	'Padre::Wx'             => 0.66,
-	'Padre::Wx::Role::Main' => 0.66,
-}
-
 sub plugin_name {
 	'Padre Form Builder';
+}
+
+sub padre_interfaces {
+	'Padre::Plugin'         => 0.93,
+	'Padre::Util'           => 0.93,
+	'Padre::Unload'         => 0.93,
+	'Padre::Task'           => 0.93,
+	'Padre::Document'       => 0.93,
+	'Padre::Project'        => 0.93,
+	'Padre::Wx'             => 0.93,
+	'Padre::Wx::Role::Main' => 0.93,
+	'Padre::Wx::Main'       => 0.93,
+	'Padre::Wx::Editor'     => 0.93,
 }
 
 # Clean up our classes
 sub plugin_disable {
 	my $self = shift;
 
-	# Close the formbuilder dialog if it is hanging around
-	if ( $self->{dialog} ) {
-		$self->{dialog}->Destroy;
-		$self->{dialog} = undef;
-	}
+	# Remove the dialog
+	$self->clean_dialog;
 
 	# Unload all our child classes
-	$self->unload('Padre::Plugin::FormBuilder::Dialog');
-	$self->unload('Padre::Plugin::FormBuilder::FBP');
-	$self->unload('Padre::Plugin::FormBuilder::Perl');
-	$self->unload('Padre::Plugin::FormBuilder::Preview');
+	$self->unload( qw{
+		Padre::Plugin::FormBuilder::Dialog
+		Padre::Plugin::FormBuilder::FBP
+		Padre::Plugin::FormBuilder::Perl
+		Padre::Plugin::FormBuilder::Preview
+	} );
 
 	return 1;
 }
@@ -99,6 +100,19 @@ sub menu_plugins {
 	return $item;
 }
 
+sub clean_dialog {
+	my $self = shift;
+
+	# Close the formbuilder dialog if it is hanging around
+	if ( $self->{dialog} ) {
+		$self->{dialog}->clear_preview;
+		$self->{dialog}->Destroy;
+		delete $self->{dialog};
+	}
+
+	return 1;
+}
+
 
 
 
@@ -111,10 +125,7 @@ sub menu_dialog {
 	my $main = $self->main;
 
 	# Clean up any previous existing dialog
-	if ( $self->{dialog} ) {
-		$self->{dialog}->Destroy;
-		$self->{dialog} = undef;
-	}
+	$self->clean_dialog;
 
 	# Create the new dialog
 	require Padre::Plugin::FormBuilder::Dialog;
@@ -146,7 +157,7 @@ L<Padre>
 
 =head1 COPYRIGHT
 
-Copyright 2010 - 2011 Adam Kennedy.
+Copyright 2010 - 2012 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

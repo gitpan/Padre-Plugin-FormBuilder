@@ -23,23 +23,36 @@ It overloads various methods to make things work in a more Padre-specific way.
 use 5.008005;
 use strict;
 use warnings;
-use Scalar::Util      ();
+use Scalar::Util 1.19 ();
 use Params::Util 0.33 ();
-use FBP::Perl    0.59 ();
-use Mouse        0.61;
+use FBP::Perl    0.75 ();
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
+our @ISA     = 'FBP::Perl';
 
-extends 'FBP::Perl';
 
-has encapsulate => (
-	is       => 'ro',
-	isa      => 'Bool',
-	required => 1,
-	default  => 0,
-);
 
-no Mouse;
+
+
+######################################################################
+# Constructor
+
+sub new {
+	my $self = shift->SUPER::new(
+		# Apply the default prefix style
+		prefix => 2,
+		@_,
+	);
+
+	# The encapsulate accessor
+	$self->{encapsulate} = $self->{encapsulate} ? 1 : 0;
+
+	return $self;
+}
+
+sub encapsulate {
+	$_[0]->{encapsulate};
+}
 
 
 
@@ -52,11 +65,12 @@ sub form_class {
 	my $self  = shift;
 	my $form  = shift;
 	my $lines = $self->SUPER::form_class($form);
+	my $year  = 1900 + (localtime(time))[5];
 
 	# Append the copywrite statement that Debian/etc need
-	push @$lines, <<'END_PERL';
+	push @$lines, <<"END_PERL";
 
-# Copyright 2008-2011 The Padre development team as listed in Padre.pm.
+# Copyright 2008-$year The Padre development team as listed in Padre.pm.
 # LICENSE
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl 5 itself.
@@ -119,60 +133,47 @@ sub project_dist {
 	return $name;
 }
 
-sub form_isa {
+sub form_super {
 	my $self = shift;
-	my $form = shift;
-	if ( $form->isa('FBP::Dialog') ) {
-		return $self->nested(
-			"our \@ISA     = qw{",
-			"Padre::Wx::Role::Main",
-			"Wx::Dialog",
-			"};",
-		);
-
-	} elsif ( $form->isa('FBP::Frame') ) {
-		return $self->nested(
-			"our \@ISA     = qw{",
-			"Padre::Wx::Role::Main",
-			"Wx::Frame",
-			"};",
-		);
-
-	} elsif ( $form->isa('FBP::Panel') ) {
-		return $self->nested(
-			"our \@ISA     = qw{",
-			"Padre::Wx::Role::Main",
-			"Wx::Panel",
-			"};",
-		);
-
-	} else {
-		die "Unsupported form " . ref($form);
+	my @super = $self->SUPER::form_super(@_);
+	if ( @super ) {
+		unshift @super, 'Padre::Wx::Role::Main';
 	}
+	return @super;
 }
 
 sub form_wx {
 	my $self  = shift;
 	my $topic = shift;
+
+	# Which Wx modules does this form need
+	my @modules = ();
+	if ( $self->find_plain( $topic => 'FBP::HtmlWindow' ) ) {
+		push @modules, 'Html';
+	}
+	if ( $self->find_plain( $topic => 'FBP::Grid' ) ) {
+		push @modules, 'Grid';
+	}
+	if ( $self->find_plain( $topic => 'FBP::Calendar' ) ) {
+		push @modules, 'Calendar';
+		push @modules, 'DateTime';
+	} elsif ( $self->find_plain( $topic => 'FBP::DatePickerCtrl' ) ) {
+		push @modules, 'DateTime';
+	}
+	if ( $self->find_plain( $topic => 'FBP::RichTextCtrl' ) ) {
+		push @modules, 'RichText';
+	}
+
+	# Generate the use lines
+	my $params = '()';
+	if ( @modules ) {
+		$params = join ', ', map { "'$_'" } @modules;
+	}
 	my $lines = [
-		"use Padre::Wx ();",
+		"use Padre::Wx $params;",
 		"use Padre::Wx::Role::Main ();",
 	];
-	if ( $topic->find_first( isa => 'FBP::RichTextCtrl' ) ) {
-		push @$lines, "use Wx::STC ();";
-	}
-	if ( $topic->find_first( isa => 'FBP::HtmlWindow' ) ) {
-		push @$lines, "use Wx::HTML ();";
-	}
-	if ( $topic->find_first( isa => 'FBP::Grid' ) ) {
-		push @$lines, "use Wx::Grid ();";
-	}
-	if ( $topic->find_first( isa => 'FBP::Calendar' ) ) {
-		push @$lines, "use Wx::Calendar ();";
-		push @$lines, "use Wx::DateTime ();";
-	} elsif ( $topic->find_first( isa => 'FBP::DatePickerCtrl' ) ) {
-		push @$lines, "use Wx::DateTime ();";
-	}
+
 	return $lines;
 }
 
@@ -292,6 +293,26 @@ sub file {
 	return "File::ShareDir::dist_file( $dist, $file )";
 }
 
+sub wx {
+	my $self = shift;
+	unless ( $self->prefix > 1 ) {
+		return $self->SUPER::wx(@_);
+	}
+
+	# Apply the same null checks as the normal method
+	my $string = shift;
+	return 0  if $string eq '';
+	return -1 if $string eq 'wxID_ANY';
+
+	# Handle constants in the new Wx::FOO style
+	$string =~ s/\bwx/Wx::/gi;
+
+	# Tidy a collection of multiple constants
+	$string =~ s/\s*\|\s*/ | /g;
+
+	return $string;
+}
+
 1;
 
 =pod
@@ -314,7 +335,7 @@ L<Padre>
 
 =head1 COPYRIGHT
 
-Copyright 2010 - 2011 Adam Kennedy.
+Copyright 2010 - 2012 Adam Kennedy.
 
 This program is free software; you can redistribute
 it and/or modify it under the same terms as Perl itself.

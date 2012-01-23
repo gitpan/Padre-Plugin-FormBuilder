@@ -1,6 +1,18 @@
 Changes for Perl extension Padre-Plugin-FormBuilder
 
-0.03 to be released
+0.04 Mon 23 Jan 2012
+	- Updated to Module::Install::DSL 1.04
+	- Updated to match changes in FBP::Perl 0.73
+	- Auto-detect $VERSION from the project the .fbp file is in
+	- Added support for previewing frames without crashing
+	- Removed the use of Mouse as it causes reloading problems
+	- When in Padre mode use the new Wx::FOO style constants
+	- Do not use not-so-"Smart" internationalisation for Padre
+	  as full strings with punctuation are easier to translate
+	- Support for generating several files at once into editors
+	- Generate the year instead of hard-coding it to 2011
+
+0.03 Tue 2 Aug 2011
 	- Rearranged the codegen options to allow more detailed descriptions
 	- Added specific control of internationalisation in generated code
 	- Added support for the FPB::Perl i18n_trim option, labelled as
